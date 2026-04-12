@@ -1,0 +1,112 @@
+<!-- Button to open modal -->
+<button
+  class="btn btn"
+  (click)="clearSelections(); $event.stopPropagation()"
+  data-bs-toggle="modal"
+  [attr.data-bs-target]="'#' + modalId"
+>
+  Toevoegen
+</button>
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  [id]="modalId"
+  tabindex="-1"
+  aria-labelledby="addFeedtypeModalLabel"
+  aria-hidden="true"
+  (click)="$event.stopPropagation()"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h3 class="modal-title" id="addFeedtypeModalLabel">Voersoorten</h3>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div class="container">
+          <div
+            class="form-check form-check-inline"
+            *ngFor="let type of categories; let i = index"
+          >
+            <input
+              class="form-check-input"
+              type="checkbox"
+              [id]="'CategoryId' + i"
+              [value]="type.id"
+              [checked]="selectedCategoryTypes.includes(type.id)"
+              (change)="onCategoryTypeChange(type.id, $event)"
+            />
+            <label class="form-check-label" [for]="'CategoryId' + i">
+              {{ type.name }}
+            </label>
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="mb-3" style="max-height: 66%">
+          <input
+            type="text"
+            class="form-control mb-3"
+            placeholder="Zoek voersoorten..."
+            [(ngModel)]="searchTerm"
+            (keyup)="filterFeedTypes()"
+          />
+          <div class="feedtype-list">
+            <ul
+              *ngIf="filteredFeedTypes.length > 0; else noData"
+              class="ration-list"
+            >
+              <li
+                *ngFor="let basalRation of filteredFeedTypes"
+                class="ration-item"
+              >
+                <label
+                  for="basalRation{{ basalRation.id }}"
+                  class="form-check-label"
+                >
+                  {{ basalRation.name }}
+                </label>
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(basalRation)"
+                  (change)="toggleSelection(basalRation, $event)"
+                  class="form-check-input"
+                  id="basalRation{{ basalRation.id }}"
+                  style="margin-right: 15px"
+                />
+              </li>
+            </ul>
+          </div>
+          <ng-template #noData>
+            <p>Geen voedingssoorten beschikbaar.</p>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Sluiten
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="addRationsToSelected()"
+          data-bs-dismiss="modal"
+        >
+          Toevoegen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

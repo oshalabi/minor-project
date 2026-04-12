@@ -1,0 +1,82 @@
+.energyFood-component {
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; /* Subtiele schaduw */
+  border-radius: 15px;
+  display: block;
+  max-width: 100%;
+}
+
+.energyFood-header {
+  width: 100%;
+  height: 50px;
+  border-radius: 15px 15px 0 0;
+  background-color: #d7f2ba;
+  display: flex; /* Maakt het eenvoudiger om de inhoud uit te lijnen */
+  align-items: center; /* Zorgt ervoor dat de tekst in het midden blijft */
+  justify-content: flex-start; /* Zorgt ervoor dat de tekst links uitgelijnd blijft */
+  padding: 10px; /* Ruimte rondom de tekst */
+  position: relative; /* Voor toekomstige aanpassingen als nodig */
+  cursor: pointer; /* Geeft aan dat de header klikbaar is */
+  transition: background-color 0.3s ease; /* Subtiel hover-effect */
+}
+
+.energyFood-header:hover {
+  background-color: #cbe9a6; /* Lichtere kleur bij hover */
+}
+
+.energyFood-header h3 {
+  color: rgba(0, 124, 40, 0.965);
+  font-size: 1.5rem;
+}
+
+.header-controls {
+  margin-left: auto; /* Schuif de zoekbalk helemaal naar rechts */
+  flex-grow: 1; /* Zorg dat het ruimte inneemt om naar rechts te schuiven */
+  max-width: 15%;
+}
+
+.shadow {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; /* Subtiele schaduw */
+  border-bottom: 1px solid #e5e5e5; /* Optionele rand onder de navbar */
+}
+
+.header-title {
+  width: 200px;
+}
+
+.header-button {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.btn {
+  background-color: rgb(0, 124, 40);
+  color: white;
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+  border: none;
+  height: 30px;
+  font-weight: bolder;
+  font-size: 13px;
+}
+
+.energyFood-body {
+  overflow: hidden; /* Zorg ervoor dat de inhoud netjes verdwijnt */
+  transition: height 0.3s ease; /* Smooth animatie voor inklappen */
+}
+
+.energyFood-body[hidden] {
+  display: none; /* Verberg de body volledig als deze is verborgen */
+}
+.energyFood-header {
+  transition: border-radius 0.01s ease; /* Smooth overgang voor border-radius */
+}
+
+.expanded-header {
+  border-radius: 15px 15px 0 0; /* Open header */
+}
+
+.collapsed-header {
+  border-radius: 15px; /* Ingeklapte header */
+}

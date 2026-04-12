@@ -1,0 +1,62 @@
+<nav class="navbar navbar-expand-lg py-1 shadow-navbar">
+  <div class="container-fluid justify-content-md-between">
+    <div class="row align-items-center">
+      <!-- Logo Section -->
+      <div class="col">
+        <div class="d-flex justify-content-start">
+          <img
+            src="/assets/logo-agrifirm-rgb-274x90-3.png"
+            alt="Agrifirm logo"
+            class="logo"
+          />
+        </div>
+      </div>
+
+      <!-- Dropdown Section -->
+      <div class="col">
+        <div class="d-flex justify-content-start">
+          <div class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle"
+              id="dropdownMenu"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              (click)="getRations()"
+            >
+              {{ selectedRation?.name || 'Selecteer Rantsoen' }}
+            </a>
+            <ul
+              *ngIf="dropdownRations.length > 0"
+              class="dropdown-menu shadow-dropdown"
+              aria-labelledby="dropdownMenu"
+            >
+              <li *ngFor="let ration of dropdownRations">
+                <a class="dropdown-item" (click)="selectRation(ration)">{{
+                  ration.name
+                }}</a>
+              </li>
+            </ul>
+            <ul *ngIf="dropdownRations.length === 0" class="dropdown-menu">
+              <li class="dropdown-item text-muted">
+                Geen rantsioenen beschikbaar
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buttons Section -->
+      <div class="col">
+        <div class="d-flex justify-content-center">
+          <create-new-ration-modal></create-new-ration-modal>
+          <button class="btn me-2">Dupliceren</button>
+          <button class="btn me-2">Verwijderen</button>
+          <feedtype-import-modal class="me-2" [rationId]="selectedRation?.id"></feedtype-import-modal>
+          <button class="btn me-2">Voerefficiëntie</button>
+          <app-livestock-properties class="me-2"></app-livestock-properties>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

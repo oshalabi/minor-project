@@ -1,0 +1,24 @@
+.content {
+  margin: auto;
+  width: 96vw;
+}
+.main-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.nav-tabs .nav-link {
+  color: rgb(0, 124, 40);
+  font-weight: bold;
+  border: 1px solid transparent;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  
+}
+
+.nav-tabs .nav-link.active {
+  background-color: rgb(0, 124, 40);
+  color: white;
+  border-color: #d7f2ba;
+}

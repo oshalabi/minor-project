@@ -1,0 +1,213 @@
+trigger:
+  branches:
+    include:
+      - development
+    exclude:
+      - 'ci:skip'
+pr:
+  branches:
+    include:
+      - development
+
+resources:
+  - repo: self
+
+variables:
+  solution: 'src/groep5-rantsoenwijzer.sln'
+  angularAppPath: 'src/WebApp'
+  GIT_OPS_BRANCH: "main"
+stages:
+  - stage: BuildAndTest
+    displayName: Build and Test Applications
+    condition: and(not(eq(variables['Build.SourceBranchName'], 'main')), not(eq(variables['Build.SourceBranchName'], 'development')), not(contains(variables['Build.SourceVersionMessage'], '[ci:skip]')), not(startsWith(variables['Build.SourceVersionMessage'], 'doc')))
+    jobs:
+      - job: Build
+        displayName: Build and Test Job
+        pool:
+          vmImage: 'windows-latest'
+        condition: succeeded()
+        steps:
+          # Step 1: Check out the code
+          - checkout: self
+            clean: true
+
+          # Step 2: Install .NET SDK
+          - task: UseDotNet@2
+            displayName: Use .NET Core SDK
+            inputs:
+              packageType: 'sdk'
+              version: '8.x'
+
+          # Step 3: Restore .NET dependencies
+          - script: |
+              echo "Restoring .NET dependencies..."
+              dotnet restore $(solution)
+            displayName: Restore .NET Dependencies
+
+          # Step 4: Build the .NET solution
+          - script: |
+              echo "Building the .NET solution..."
+              dotnet build --no-restore $(solution)
+            displayName: Build .NET Solution
+
+          # Step 5: Run .NET unit tests
+          - script: |
+              echo "Running .NET tests..."
+              dotnet test --no-build --verbosity normal $(solution)
+            displayName: Run .NET Tests
+
+          # Step 6: Install Node.js
+          - task: NodeTool@0
+            displayName: Install Node.js
+            inputs:
+              versionSpec: '18.x'
+          # Step 7: Restore Angular dependencies
+          - script: |
+              echo "Restoring Angular dependencies..."
+              cd $(angularAppPath)
+              npm install
+            displayName: Restore Angular Dependencies
+          # Step 8: Build WebApp
+          - script: |
+              echo "Building the Angular application..."
+              cd $(angularAppPath)
+              npm run build 
+            displayName: Build Angular Application
+#          # Step 9: Run WebApp tests 
+#          - script: |
+#              echo "Running Angular tests..."
+#              cd $(angularAppPath)
+#              npm test
+#            displayName: Run Angular Tests
+            
+  - stage: AutoVersion
+    displayName: Auto-Version
+    dependsOn: BuildAndTest
+    condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/development'), not(contains(variables['Build.SourceVersionMessage'], '[ci:skip]')), not(startsWith(variables['Build.SourceVersionMessage'], 'doc')))
+    jobs:
+      - job: AutoVersion
+        displayName: Run Auto-Versioning
+        steps:
+          # Step 1: Check out code
+          - checkout: self
+            clean: true
+            fetchDepth: 0
+            persistCredentials: true
+
+          # Step 2: Run auto-versioning script
+          - task: PowerShell@2
+            displayName: Run Auto-Versioning Script
+            inputs:
+              targetType: filePath
+              filePath: $(Build.SourcesDirectory)/src/AutoVersion.ps1
+              workingDirectory: $(Build.SourcesDirectory)
+
+          # Step 3: Extract version from the VERSION file
+          - task: PowerShell@2
+            displayName: Extract and Set Application Version
+            inputs:
+              targetType: inline
+              script: |
+                $version = Get-Content "$(Build.SourcesDirectory)/src/VERSION"
+                Write-Host "##vso[task.setvariable variable=AppVersion]$version"
+
+  - stage: BuildAndPush
+    displayName: Build and Push Docker Images
+    dependsOn: AutoVersion
+    condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/development'), contains(variables['Build.SourceVersionMessage'], '[auto-version]'))
+    jobs:
+      - job: DockerBuild
+        displayName: Build and Push Docker Images
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          # Step 1: Login to Docker Registry
+          - task: Docker@2
+            displayName: Login to Docker Registry
+            inputs:
+              command: login
+              containerRegistry: minorRegistry
+
+          # Step 2: Run the RebuildAndPush.ps1 script
+          - task: PowerShell@2
+            displayName: Rebuild and Push Docker Images
+            inputs:
+              targetType: filePath
+              filePath: $(Build.SourcesDirectory)/src/RebuildAndPush.ps1
+              workingDirectory: $(Build.SourcesDirectory)/src
+          
+  - stage: Deploy
+    displayName: Extract App Version and Deploy Updated Values
+    dependsOn: BuildAndPush
+    condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/development'), contains(variables['Build.SourceVersionMessage'], '[auto-version]'))
+    jobs:
+      - job: GitOpsUpdate
+        displayName: Extract Version and Update GitOps Repository
+        pool:
+          vmImage: 'windows-latest'
+        steps:
+          # Step 1: Check out the code
+          - checkout: self
+            clean: true
+          
+          # Step 2: Read VERSION file and set as a pipeline variable
+          - task: PowerShell@2
+            displayName: Extract VERSION File
+            inputs:
+              targetType: inline
+              script: |
+                Write-Host "Reading VERSION file..."
+                $versionFile = "$(Build.SourcesDirectory)\VERSION"
+                if (!(Test-Path $versionFile)) {
+                    Write-Error "Error: VERSION file not found in $versionFile."
+                    exit 1
+                }
+                $version = Get-Content $versionFile -Raw
+                $version = $version.Trim()
+                Write-Host "Extracted version: $version"
+                Write-Host "##vso[task.setvariable variable=AppVersion]$version"
+          
+          # Step 3: Debug AppVersion variable
+          - script: |
+              echo "AppVersion: $(AppVersion)"
+            displayName: Debug AppVersion
+          
+          # Step 4: Clone the GitOps repository
+          - script: |
+              echo "Cloning GitOps repository..."
+              git config --global user.name "CI/CD Pipeline"
+              git config --global user.email "ci-cd@teamluna.han.nl"
+              git clone https://$(GITOPS_USERNAME):$(GITOPS_PASS)@$(GITOPS_URL)
+              cd mcps-gitops
+              git checkout $(GIT_OPS_BRANCH)
+            displayName: Clone GitOps Repository
+            env:
+              GITOPS_USERNAME: $(GITOPS_USERNAME)
+              GITOPS_PASS: $(GITOPS_PASS)
+              GITOPS_URL: $(GITOPS_URL)
+          
+          # Step 5: Install yq
+          - task: PowerShell@2
+            displayName: Install yq
+            inputs:
+              targetType: filePath
+              filePath: mcps-gitops/scripts/install-yq.ps1
+              workingDirectory: mcps-gitops/scripts
+          
+          # Step 6: Update values.yaml with the extracted version
+          - task: PowerShell@2
+            displayName: Update values.yaml with Application Version
+            inputs:
+              targetType: filePath
+              filePath: mcps-gitops/scripts/update-values.ps1
+              arguments: "-Version $(AppVersion) -Env dev"
+              workingDirectory: mcps-gitops/scripts
+          
+          # Step 7: Commit and Push Changes
+          - script: |
+              cd mcps-gitops
+              git add .
+              git commit -m "chore: update values.yaml to version $(AppVersion) [ci:skip]"
+              git push origin $(GIT_OPS_BRANCH)
+            displayName: Commit and Push Changes
+

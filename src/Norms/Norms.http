@@ -1,0 +1,6 @@
+@Norms_HostAddress = http://localhost:4910
+
+GET {{Norms_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

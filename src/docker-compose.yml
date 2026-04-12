@@ -1,0 +1,247 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+      - "./rabbitmq:/rantsoenwijzer"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_CONFIG_FILE=/rantsoenwijzer/rabbitmq.conf
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 10s
+      retries: 4
+      start_period: 10s
+      timeout: 10s
+
+  webapp:
+    image: webapp:1.0
+    build:
+      context: ./WebApp
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      rationapi:
+        condition: service_started
+      basalrationapi:
+        condition: service_started
+      importration:
+        condition: service_started
+      energyfoodapi:
+        condition: service_started
+
+  rationapi:
+    image: rationapi:1.0
+    build:
+      context: .
+      dockerfile: ./Ration/Dockerfile
+    ports:
+      - "5156:5156"
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=http://*:5156
+      - ASPNETCORE_ENVIRONMENT=Production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=RationDB
+      - RABBITMQ_CONNECTION_TYPE=${RABBITMQ_CONNECTION_TYPE}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_EXCHANGE=${RABBITMQ_EXCHANGE}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+      - RABBITMQ_ROUTING_KEY=basalFeed
+    volumes:
+      - ./Domain:/app/Domain
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5156/hc" ]
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+  
+  importration:
+    image: importration:1.0
+    build:
+      context: .
+      dockerfile: ./ImportRation/Dockerfile
+    ports:
+      - "4201:4201"
+    volumes:
+      - ./Domain:/app/Domain
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=http://*:4201
+      - ASPNETCORE_ENVIRONMENT=Production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=ImportRationDB
+      - RABBITMQ_CONNECTION_TYPE=${RABBITMQ_CONNECTION_TYPE}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_EXCHANGE=${RABBITMQ_EXCHANGE}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4201/hc" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  basalrationapi:
+    image: basalrationapi:1.0
+    build:
+      context: .
+      dockerfile: ./BasalRation/Dockerfile
+    ports:
+      - "4900:4900"
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=http://*:4900
+      - ASPNETCORE_ENVIRONMENT=Production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=BasalFeedDB
+      - RABBITMQ_CONNECTION_TYPE=${RABBITMQ_CONNECTION_TYPE}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_EXCHANGE=${RABBITMQ_EXCHANGE}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+      - RABBITMQ_ROUTING_KEY=basalFeed
+    volumes:
+      - ./Domain:/app/Domain
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4900/hc" ]
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  energyfoodapi:
+    image: energyfoodapi:1.0
+    build:
+      context: .
+      dockerfile: ./EnergyFood/Dockerfile
+    ports:
+      - "4300:4300"
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=http://*:4300
+      - ASPNETCORE_ENVIRONMENT=Production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=EnergyFoodDB
+      - RABBITMQ_CONNECTION_TYPE=${RABBITMQ_CONNECTION_TYPE}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_EXCHANGE=${RABBITMQ_EXCHANGE}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+      - RABBITMQ_ROUTING_KEY=energyFeed
+    volumes:
+      - ./Domain:/app/Domain
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4300/hc" ]
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+  
+  normapi:
+    image: normapi:1.0
+    build:
+      context: .
+      dockerfile: ./Norms/Dockerfile
+    ports:
+      - "4850:4850"
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=http://*:4850
+      - ASPNETCORE_ENVIRONMENT=Production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=NormDB
+      - RABBITMQ_CONNECTION_TYPE=${RABBITMQ_CONNECTION_TYPE}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_EXCHANGE=${RABBITMQ_EXCHANGE}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+    volumes:
+      - ./Domain:/app/Domain
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4850/hc" ]
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  database:
+    image: postgres:17.2-alpine3.20
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "Developer"]
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+volumes:
+  postgres_data:
+    external: true
+  melkvee_rantsoen_volume:
+    external: true
+  basal_ration_volume:
+    external: true
+  rabbitmqdata:
+    external: true

@@ -1,0 +1,84 @@
+trigger:
+  branches:
+    include:
+      - main
+pr:
+  branches:
+    include:
+      - main
+
+resources:
+  - repo: self
+
+variables:
+  GIT_OPS_BRANCH: "main"
+stages:
+          
+  - stage: Deploy_Production
+    displayName: Extract App Version and Deploy Updated Values
+    jobs:
+      - job: GitOpsUpdate
+        displayName: Extract Version and Update GitOps Repository
+        pool:
+          vmImage: 'windows-latest'
+        steps:
+          # Step 1: Check out the code
+          - checkout: self
+            clean: true
+          
+          # Step 2: Read VERSION file and set as a pipeline variable
+          - task: PowerShell@2
+            displayName: Extract VERSION File
+            inputs:
+              targetType: inline
+              script: |
+                Write-Host "Reading VERSION file..."
+                $versionFile = "$(Build.SourcesDirectory)\VERSION"
+                if (!(Test-Path $versionFile)) {
+                    Write-Error "Error: VERSION file not found in $versionFile."
+                    exit 1
+                }
+                $version = Get-Content $versionFile -Raw
+                $version = $version.Trim()
+                Write-Host "Extracted version: $version"
+                Write-Host "##vso[task.setvariable variable=AppVersion]$version"
+          
+          # Step 3: Clone the GitOps repository
+          - script: |
+              echo "Cloning GitOps repository..."
+              git config --global user.name "CI/CD Pipeline"
+              git config --global user.email "ci-cd@teamluna.han.nl"
+              git clone https://$(GITOPS_USERNAME):$(GITOPS_PASS)@$(GITOPS_URL)
+              cd mcps-gitops
+              git checkout $(GIT_OPS_BRANCH)
+            displayName: Clone GitOps Repository
+            env:
+              GITOPS_USERNAME: $(GITOPS_USERNAME)
+              GITOPS_PASS: $(GITOPS_PASS)
+              GITOPS_URL: $(GITOPS_URL)
+          
+          # Step 4: Install yq
+          - task: PowerShell@2
+            displayName: Install yq
+            inputs:
+              targetType: filePath
+              filePath: mcps-gitops/scripts/install-yq.ps1
+              workingDirectory: mcps-gitops/scripts
+          
+          # Step 5: Update values.yaml with the extracted version
+          - task: PowerShell@2
+            displayName: Update values.yaml with Application Version
+            inputs:
+              targetType: filePath
+              filePath: mcps-gitops/scripts/update-values.ps1
+              arguments: "-Version $(AppVersion) -Env prod"
+              workingDirectory: mcps-gitops/scripts
+          
+          # Step 6: Commit and Push Changes
+          - script: |
+              cd mcps-gitops
+              git add .
+              git commit -m "chore: update values-prod.yaml to version $(AppVersion)"
+              git push origin $(GIT_OPS_BRANCH)
+            displayName: Commit and Push Changes
+

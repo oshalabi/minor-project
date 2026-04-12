@@ -1,0 +1,6 @@
+@BasisRantsoen_HostAddress = http://localhost:4900
+
+GET {{BasisRantsoen_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

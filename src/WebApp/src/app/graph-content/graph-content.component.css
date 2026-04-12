@@ -1,0 +1,51 @@
+.checkbox-container label {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+/* Base button styles */
+.button-container .btn {
+  margin-right: 10px;
+  padding: 10px 20px;
+  border: 1px solid rgb(0, 124, 40); /* Dark green border */
+  background-color: white; /* White background by default */
+  color: rgb(0, 124, 40); /* Dark green text by default */
+  cursor: pointer;
+  transition: all 0.3s ease; /* Smooth transition for color changes */
+}
+
+/* On hover, change the background to a light green */
+.button-container .btn:hover {
+  background-color: rgba(0, 124, 40, 0.1); /* Light green background on hover */
+}
+
+/* When a button is selected, apply the selected styles */
+.button-container .btn.selected {
+  background-color: rgb(0, 124, 40); /* Dark green background */
+  color: white; /* White text */
+}
+
+.row {
+  display: flex; /* Ensure containers align in a row */
+  flex-wrap: nowrap; /* Prevent wrapping to the next line */
+}
+
+.graph-container {
+  display: flex; /* Maintain alignment for canvas */
+  justify-content: center;
+  align-items: center;
+  height: 500px; /* Keep consistent height */
+}
+
+.graph-container.opstarttabel {
+  flex: 0 0 30%; /* Opstarttabel takes 30% of the width */
+}
+
+.graph-container.voertabelmelk {
+  flex: 0 0 70%; /* Melkproductie table takes 70% of the width */
+}
+
+canvas {
+  width: 100% !important; /* Canvas fills the container */
+  height: 100% !important;
+}

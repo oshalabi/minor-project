@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Define the regex pattern for commit messages (no colon required)
+COMMIT_MSG_REGEX="^(add|fix|chore|docs) .+$"
+
+# Read the commit message
+COMMIT_MSG=$(cat "$1")
+
+# Check if the commit message matches the regex
+if [[ ! "$COMMIT_MSG" =~ $COMMIT_MSG_REGEX ]]; then
+    echo "Warning: Invalid commit message format."
+    echo "Your commit message must follow this format:"
+    echo "  add add a new feature or component"
+    echo "  fix correct a bug or issue"
+    echo "  chore maintenance or tooling updates"
+    echo "  docs documentation improvements or additions"
+    exit 0
+fi
+
+# If the commit message is valid, allow the commit
+exit 0

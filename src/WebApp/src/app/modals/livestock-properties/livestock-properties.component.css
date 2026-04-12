@@ -1,0 +1,49 @@
+.btn {
+    background-color: rgb(0, 124, 40);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    height: 40px;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2); /* Subtle button shadow */
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  ul {
+    list-style-type: none; /* Removes the bullets */
+    padding: 0; /* Optional: removes default padding */
+    margin: 0; /* Optional: removes default margin */
+  }
+  
+  /* Optional: Add custom styles for list items */
+  ul li {
+    padding: 5px 0; /* Adds some spacing between items */
+    border-bottom: 1px solid #ddd; /* Optional: adds a subtle separator line */
+  }
+  
+  ul li:last-child {
+    border-bottom: none; /* Removes separator for the last item */
+  }
+
+  .nav-tabs .nav-link {
+    color: rgb(0, 124, 40);
+    font-weight: bold;
+    border: 1px solid transparent;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+  
+  .nav-tabs .nav-link.active {
+    background-color: rgb(0, 124, 40);
+    color: white;
+    border-color: #d7f2ba;
+  }
+  
+  /* Add padding to the modal-body */
+  .modal-body {
+    padding: 20px;
+  }
+  
+
+  

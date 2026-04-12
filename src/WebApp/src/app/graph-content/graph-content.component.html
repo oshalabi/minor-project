@@ -1,0 +1,25 @@
+<div class="checkbox-container">
+  <div class="form-check form-check-inline" *ngFor="let category of categoryList">
+    <label>
+      <input
+        type="radio"
+        name="category"
+        (change)="selectCategory(category.value)"
+        [checked]="selectedCategory === category.value"
+      />
+      {{ category.label }}
+    </label>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Opstarttabel graph container -->
+  <div class="col-md-6 graph-container opstarttabel">
+    <canvas id="chart-opstarttabel"></canvas>
+  </div>
+
+  <!-- Voertabel Melk graph container -->
+  <div class="col-md-6 graph-container voertabelmelk">
+    <canvas id="chart-voertabelmelk"></canvas>
+  </div>
+</div>

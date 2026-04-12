@@ -1,0 +1,137 @@
+.table-container {
+  display: flex;
+  width: inherit;
+  overflow: hidden;
+}
+
+.extra-header-row {
+  height: 30px;
+}
+
+.extra-header-cell {
+  text-align: center; /* Centreer horizontaal */
+  vertical-align: middle; /* Centreer verticaal */
+  font-weight: bold; /* Optioneel: Maak de tekst vet */
+  font-size: 14px; /* Optioneel: Pas de grootte aan */
+  padding: 5px; /* Ruimte rondom de tekst */
+}
+
+.sticky-container {
+  flex: 0 0 auto; /* Zorgt ervoor dat de breedte vast blijft */
+  background: white; /* Voorkomt dat de achtergrond doorschijnt */
+}
+
+.scrollable-container {
+  flex: 1 1 auto; /* Laat de scrollbare kolommen de resterende ruimte innemen */
+  overflow-x: auto; /* Maakt horizontaal scrollen mogelijk */
+}
+
+th {
+  font-weight: bold;
+}
+.mat-header-cell,
+.mat-cell {
+  white-space: nowrap; /* Voorkomt dat inhoud wordt afgebroken */
+}
+
+.scrollable-container .mat-header-cell,
+.scrollable-container .mat-cell {
+  text-align: center; /* Optioneel: center-align voor de scrollbare kolommen */
+}
+
+.one {
+  background-color: rgb(230, 246, 230) !important;
+}
+
+.two {
+  background-color: rgb(244, 246, 230) !important;
+}
+
+.three {
+  background-color: rgb(252, 255, 233) !important;
+}
+
+.mat-mdc-table {
+  background-color: transparent !important; /* Verwijdert de achtergrondkleur */
+}
+.mat-mdc-paginator {
+  border-radius: 0 0 15px 15px; /* Maak de randen rond */
+  overflow: hidden; /* Zorg ervoor dat de inhoud binnen de afgeronde hoeken blijft */
+  background-color: white; /* Optioneel: achtergrondkleur */
+}
+.totals-row {
+  background-color: #f9f9f9; /* Lichtgrijze achtergrond */
+  font-weight: bold; /* Vetgedrukte tekst */
+  padding: 10px 0; /* Ruimte rondom */
+  border-top: 1px solid #ddd; /* Scheidingslijn boven de totalen */
+}
+
+.total-cell {
+  padding: 8px;
+  text-align: center; /* Centreer de waarden */
+  border: 1px solid #ddd; /* Optionele randen om de cellen */
+}
+
+.small-container {
+  display: inline-block;
+  max-width: 80px;
+}
+
+.small-container .form-control {
+  padding: 2px 4px;
+}
+
+.small-input {
+  font-size: 14px; /* Smaller text */
+  text-align: center;
+  align-items: center;
+  padding: 2px 2px; /* Smaller padding */
+  max-width: 75px; /* Adjust width as needed */
+}
+
+.mat-footer-row {
+  font-weight: bold;
+  background-color: #f1f1f1;
+}
+
+.mat-footer-cell {
+  text-align: center;
+}
+
+.table-container {
+  position: relative;
+  width: 100%;
+}
+
+.mat-table-error-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+.mat-sort-header {
+  text-wrap: nowrap;
+}
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 8px;
+  margin: 8px;
+  text-align: center;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}
+
+.mat-table-loader-container {
+  position: absolute;
+  right: 10px;
+  color: #ffffff;
+}
+.first-column-header:hover {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px; /* Pas de dikte van de lijn aan */
+  color: #bd0000;
+  cursor: pointer; /* Optioneel, geeft een visueel klikgevoel */
+}

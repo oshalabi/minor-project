@@ -1,0 +1,31 @@
+<!-- Button to open modal -->
+<button class="btn me-2" data-bs-toggle="modal" data-bs-target="#create-new-ration-modal"
+    (click)="$event.stopPropagation()">
+    Nieuw
+</button>
+
+
+<div class="modal fade" id="create-new-ration-modal" tabindex="-1" aria-labelledby="create-new-ration-label"
+    aria-hidden="true" (click)="$event.stopPropagation()">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="create-new-ration-label">Nieuw rantsoen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Sluiten"></button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+                    {{ errorMessage }}
+                </div>
+                <input id="rationName" type="text" class="form-control" placeholder="Rantsoen naam"
+                    [(ngModel)]="rationName" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Sluiten
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" (click)="confirm()">Toevoegen</button>
+            </div>
+        </div>
+    </div>
+</div>

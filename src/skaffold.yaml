@@ -1,0 +1,36 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: src
+build:
+  artifacts:
+    - image: basalrationapi
+      context: .
+      docker:
+        dockerfile: BasalRation/Dockerfile
+    - image: importration
+      context: . 
+      docker: 
+        dockerfile: ImportRation/Dockerfile
+    - image: webapp
+      context: WebApp
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - infra/k8s/basalrationapi-cm0-configmap.yaml
+    - infra/k8s/basalrationapi-deployment.yaml
+    - infra/k8s/basalrationapi-service.yaml
+    - infra/k8s/database-deployment.yaml
+    - infra/k8s/database-service.yaml
+    - infra/k8s/importration-cm0-configmap.yaml
+    - infra/k8s/importration-deployment.yaml
+    - infra/k8s/importration-service.yaml
+    - infra/k8s/postgres-data-persistentvolumeclaim.yaml
+    - infra/k8s/rabbitmq-cm1-configmap.yaml
+    - infra/k8s/rabbitmq-deployment.yaml
+    - infra/k8s/rabbitmq-service.yaml
+    - infra/k8s/rabbitmqdata-persistentvolumeclaim.yaml
+    - infra/k8s/webapp-deployment.yaml
+    - infra/k8s/webapp-service.yaml
+    - infra/k8s/webapp-ingress.yaml

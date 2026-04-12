@@ -1,0 +1,98 @@
+<div id={{tableId}} class="table-container" *ngIf="sections && dataSource">
+  <!-- Error Message -->
+  <div class="mat-table-error-container" *ngIf="errorMessage">
+    <mat-card class="error-message">
+      <span>{{ errorMessage }}</span>
+    </mat-card>
+  </div>
+
+  <!-- Loader -->
+  <div class="mat-table-loader-container" *ngIf="isLoading">
+    <mat-spinner diameter="24"></mat-spinner>
+  </div>
+
+<!-- Table Content -->
+<div *ngFor="let section of sections" class="{{ section.stylingClass }}">
+  <tr class="extra-header-row" [id]="'extra-header-' + tableId + '-' + section.header">
+    <th [attr.colspan]="section.columns.length" class="extra-header-cell">
+      {{ section.header }}
+    </th>
+  </tr>
+  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+    <ng-container *ngFor="let column of section.columns" [matColumnDef]="column.field">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        [id]="'header-' + tableId + '-' + column.field"
+      >
+        {{ column.displayName }}
+      </th>
+      <td
+        mat-cell
+        *matCellDef="let row"
+        [id]="'cell-' + tableId + '-' + row.id + '-' + column.field"
+        [attr.data-module-id]="'cell-' + tableId + '-' + row.id + '-' + column.field"
+        [ngStyle]="getCellStyle(row, column.field)"
+      >
+        <ng-container *ngIf="column.editable; else displayValue">
+          <input
+            type="number"
+            [(ngModel)]="row[column.field]"
+            min="0"
+            (keydown.enter)="onCellChange(row, column.field)"
+            (focus)="clearDefaultValue(row, column.field)"
+            (blur)="validateAndSetDefault(row, column.field)"
+            class="form-control small-input"
+          />
+        </ng-container>
+        <ng-template #displayValue>
+          <span
+            *ngIf="column.field === 'feedTypeName'; else normalCell"
+            class="first-column-header"
+            data-bs-toggle="modal"
+            [attr.data-bs-target]="'#' + modalId"
+            (click)="setModalObject(row)"
+          >
+            {{ renderCell(row, column.field) }}
+          </span>
+          <ng-template #normalCell>
+            <span [id]="'normal-cell-' + tableId + '-' + row.id + '-' + column.field">
+              {{ renderCell(row, column.field) }}
+            </span>
+          </ng-template>
+        </ng-template>
+      </td>
+      <td
+        mat-footer-cell
+        *matFooterCellDef
+        [id]="'footer-cell-' + tableId + '-' + column.field"
+      >
+        <b>{{ renderFooterCell(column.field) }}</b>
+      </td>
+    </ng-container>
+
+    <!-- Rows -->
+    <tr
+      mat-header-row
+      *matHeaderRowDef="getColumnFields(section)"
+      [id]="'header-row-' + tableId + '-' + section.header"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: getColumnFields(section)"
+      [id]="'row-' + tableId + '-' + row.id"
+    ></tr>
+    <ng-container *ngIf="shouldRenderFooter()">
+      <tr
+        mat-footer-row
+        *matFooterRowDef="getColumnFields(section)"
+        [id]="'footer-row-' + tableId + '-' + section.header"
+      ></tr>
+    </ng-container>
+  </table>
+</div>
+</div>
+<mat-paginator *ngIf="showPaginator" [pageSize]="pageSize" [showFirstLastButtons]="true"></mat-paginator>
+<remove-feedtype-modal [header]="removeFeedTypeModalHeader" [modalObject]="selectedRow"
+  (onFeedtypeDeleted)="handleFeedtypeDeleted($event)" [modalId]="modalId"></remove-feedtype-modal>

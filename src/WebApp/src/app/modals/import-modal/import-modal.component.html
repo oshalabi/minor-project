@@ -1,0 +1,41 @@
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+  Importeren
+</button>
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true"
+  #fileModalRef>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="importModalLabel">Import Bestand</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div *ngFor="let type of importTypes" class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" [id]="type" [value]="type" name="uploadType"
+                [(ngModel)]="selectedType" (change)="onTypeChange(type)" />
+              <label class="form-check-label" [for]="type">
+                {{ type | titlecase }}
+              </label>
+            </div>
+          </div>
+          <input #fileInput class="form-control mt-2" type="file" (change)="onFileSelected($event)" />
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Sluiten
+        </button>
+        <button type="button" [disabled]="isUploading" class="btn btn-primary" (click)="uploadFile(fileInput)">
+          <ng-container *ngIf="!isUploading">
+            Importeren
+          </ng-container>
+          <ng-container *ngIf="isUploading">
+            <span class="spinner-border spinner-border-sm text-dark" role="status" aria-hidden="true"></span>
+          </ng-container>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

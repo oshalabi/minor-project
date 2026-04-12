@@ -1,0 +1,25 @@
+<div class="cows-overview-component">
+  <div [ngClass]="{
+    'collapsed-header': isCollapsed,
+    'expanded-header': !isCollapsed,
+  }" class="cows-overview-header shadow" (click)="toggleCollapse()">
+    <div class="header-title">
+      <h3>{{ title }}</h3>
+    </div>
+      <div class="search-checkbox-container">
+        <label style="margin-left: 50px;">
+          <input type="checkbox" [(ngModel)]="showAttentions" (change)="onShowAttentionsChange($event)"
+            (click)="$event.stopPropagation()" />
+          Toon attenties
+        </label>
+      </div>
+    <div class="header-controls">
+      <input type="text" class="form-control" placeholder="Zoeken..." (input)="onSearchInputChange($event)"
+        (click)="$event.stopPropagation()" />
+    </div>
+  </div>
+  <div class="cows-overview-body" *ngIf="!isCollapsed" [@collapseAnimation]>
+    <app-table [tableId]="tableId" [filterValue]="filterValue" [sections]="cowsOverviewSections"
+      [dataSource]="dataSource"></app-table>
+  </div>
+</div>

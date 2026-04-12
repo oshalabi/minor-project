@@ -1,0 +1,32 @@
+<div class="energyFood-component">
+  <div [ngClass]="{
+      'collapsed-header': isCollapsed,
+      'expanded-header': !isCollapsed,
+    }" class="energyFood-header shadow" (click)="toggleCollapse()">
+    <div class="header-title">
+      <h3>Krachtvoer</h3>
+    </div>
+    <div class="header-button">
+      <app-add-feedtype-modal
+        class="me-2"
+        [isEnergy]="true"
+        [categories]="categories"
+        (onRationsAdded)="updateRationData($event)"
+        [modalId]="'addEnergyFoodModal'"
+      />
+      <app-energy-feed-settings-modal class="me-2" />
+      <app-energy-food-modal class="me-2" />
+    </div>
+    <div class="header-controls">
+      <input type="text" class="form-control" placeholder="Zoeken..." (input)="onSearchInputChange($event)"
+        (click)="$event.stopPropagation()" />
+    </div>
+  </div>
+  <div class="energyFood-body" *ngIf="!isCollapsed" [@collapseAnimation]>
+    <app-table [tableId]="'energy-food-table-data'" [modalId]="'remove-energy-food-type-modal'"
+      [filterValue]="filterValue" [sections]="energyFoodSections" [dataSource]="dataSource"
+      [footerLabelResolver]="resolveFooterLabel" [removeFeedTypeModalHeader]="removeFeedTypeModalHeader"
+      [footerCalculationResolver]="renderFooterCell.bind(this)" (cellChange)="onCellChange($event)"
+      (feedtypeDeleted)="handleFeedtypeDeleted($event)" [showPaginator]="false"></app-table>
+  </div>
+</div>

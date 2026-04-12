@@ -1,0 +1,25 @@
+<div class="basalRation-component">
+  <div [ngClass]="{
+      'collapsed-header': isCollapsed,
+      'expanded-header': !isCollapsed,
+    }" class="basalRation-header shadow" (click)="toggleCollapse()">
+    <div class="header-title">
+      <h3>Basisrantsoen</h3>
+    </div>
+    <div class="header-button">
+      <app-add-feedtype-modal class="me-2" [categories]="categories" [isEnergy]="false"
+        (onRationsAdded)="updateRationData($event)" [modalId]="'addBasalFeedModal'" />
+    </div>
+    <div class="header-controls">
+      <input type="text" class="form-control" placeholder="Zoeken..." (input)="onSearchInputChange($event)"
+        (click)="$event.stopPropagation()" />
+    </div>
+  </div>
+  <div class="basalRation-body" *ngIf="!isCollapsed" [@collapseAnimation]>
+    <app-table [tableId]="'basal-ration-table-data'" [modalId]="'basal-ration-remove-feedtype-modal'"
+      [filterValue]="filterValue" [sections]="basalrationSections" [dataSource]="dataSource"
+      [footerLabelResolver]="resolveFooterLabel" [footerCalculationResolver]="renderFooterCell.bind(this)" [removeFeedTypeModalHeader]="removeFeedTypeModalHeader"
+      (cellChange)="onCellChange($event)" (feedtypeDeleted)="handleFeedtypeDeleted($event)"></app-table>
+  </div>
+
+</div>

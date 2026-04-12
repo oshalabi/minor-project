@@ -1,0 +1,133 @@
+<button class="btn me-2" 
+    data-bs-toggle="modal" 
+    data-bs-target="#energy-feed-settings-modal" 
+    (click)="selectedRationId !== null && loadEnergyFeedsOnOpen(selectedRationId)"
+    (click)="$event.stopPropagation()">
+    Brokgift instellingen
+</button>
+
+<div
+  class="modal fade"
+  id="energy-feed-settings-modal"
+  tabindex="-1"
+  aria-labelledby="energyFeedSettingsModalLabel"
+  aria-hidden="true"
+  (click)="$event.stopPropagation()"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="energyFeedSettingsModalLabel">Brokgift instellingen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="isLoading" class="text-center">
+            <p>Loading...</p>
+        </div>
+        <div *ngIf="!isLoading && errorMessage" class="text-danger">
+            <p>{{ errorMessage }}</p>
+        </div>
+        <div *ngIf="!isLoading && !errorMessage" class="container">
+            <div *ngFor="let feed of energyFeeds; let i = index" class="row">
+                <div class="col-3">
+                    <b>{{ feed.name }}</b>
+                </div>
+                <div class="col-3">
+                    <label>
+                        <input type="radio"
+                               name="parity_{{ i }}"
+                               [(ngModel)]="feed.selectedParity"
+                               [value]="5"
+                               (change)="onParityChange(feed, 5)" />
+                        Oudere koeien
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="parity_{{ i }}"
+                               [(ngModel)]="feed.selectedParity"
+                               [value]="4"
+                               (change)="onParityChange(feed, 4)" />
+                        2e Kalfs
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="parity_{{ i }}"
+                               [(ngModel)]="feed.selectedParity"
+                               [value]="3"
+                               (change)="onParityChange(feed, 3)" />
+                        Vaarzen
+                    </label>
+                </div>
+
+                <div class="col">
+                <div class="form-floating mb-3 d-flex gap-2 align-items-center" *ngIf="feed.selectedParity === 5">
+                  <div class="form-floating">
+                      <input type="number"
+                             class="form-control custom-input"
+                             [(ngModel)]="feed.parities[2].minEnergyFeed"
+                             placeholder="Min" />
+                      <label class="form-label">Min</label>
+                  </div>
+                  <div class="form-floating">
+                      <input type="number"
+                             class="form-control custom-input"
+                             [(ngModel)]="feed.parities[2].maxEnergyFeed"
+                             placeholder="Max" />
+                      <label class="form-label">Max</label>
+                  </div>
+              </div>
+              
+              <div class="form-floating mb-3 d-flex gap-2 align-items-center" *ngIf="feed.selectedParity === 4">
+                  <div class="form-floating">
+                      <input type="number"
+                             class="form-control custom-input"
+                             [(ngModel)]="feed.parities[1].minEnergyFeed"
+                             placeholder="Min" />
+                      <label class="form-label">Min</label>
+                  </div>
+                  <div class="form-floating">
+                      <input type="number"
+                             class="form-control custom-input"
+                             [(ngModel)]="feed.parities[1].maxEnergyFeed"
+                             placeholder="Max" />
+                      <label class="form-label">Max</label>
+                  </div>
+              </div>
+              
+              <div class="form-floating mb-3 d-flex gap-2 align-items-center" *ngIf="feed.selectedParity === 3">
+                  <div class="form-floating">
+                      <input type="number"
+                             class="form-control custom-input"
+                             [(ngModel)]="feed.parities[0].minEnergyFeed"
+                             placeholder="Min" />
+                      <label class="form-label">Min</label>
+                  </div>
+                  <div class="form-floating">
+                      <input type="number"
+                             class="form-control custom-input"
+                             [(ngModel)]="feed.parities[0].maxEnergyFeed"
+                             placeholder="Max" />
+                      <label class="form-label">Max</label>
+                  </div>
+              </div>
+            </div>
+              <hr>
+            </div>
+        </div>
+    </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sluiten</button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="confirm()"
+          data-bs-dismiss="modal"
+        >
+          Bevestigen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
