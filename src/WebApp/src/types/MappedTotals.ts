@@ -1,3 +1,3 @@
 export interface MappedTotals {
-    values: Array<{ field: string; value: number | string }>
+    values: Array<{feedTypeId?: number| null; field: string; value: number | string }>
 }

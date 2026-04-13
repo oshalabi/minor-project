@@ -1,7 +1,7 @@
-using BasalRation.DAL;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Norms.DAL;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);

@@ -1,7 +1,6 @@
-﻿using Domain.Entities;
-using Domain.EntityTypeConfiguration;
+﻿using Domain.EntityTypeConfiguration;
 
-namespace BasalRation.Commands;
+namespace EnergyFood.Commands;
 
 public class GetAvailableFeedTypes
 {

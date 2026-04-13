@@ -24,7 +24,7 @@ pr:
 ```
 
 ## Variabelen
-### Globale variabelen:
+### Globale variabelen
 
 ```yaml
 variables:

@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { firstValueFrom, Observable } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  Advice,
   ComparedTotalRow,
   MappedTotals,
   NutrientType,
@@ -16,7 +17,7 @@ import { NormCompare } from '../../types/NormCompare';
 @Injectable({
   providedIn: 'root',
 })
-export class CowsService {
+export class CowsOverviewService {
   private rationApiUrl = environment.rationAPI;
   private normApiUrl = environment.normAPI;
 
@@ -25,6 +26,19 @@ export class CowsService {
     private basalRationService: BasalRationService
   ) {}
 
+  private cowOverviewSubject = new BehaviorSubject<any[]>([]);
+  cowOverview$ = this.cowOverviewSubject.asObservable();
+  private cowOverviewAdvicesSubject = new BehaviorSubject<Advice[]>([
+    {
+      field: '',
+      value: 0,
+    },
+  ]);
+  cowOverviewAdvices$ = this.cowOverviewAdvicesSubject.asObservable();
+
+  setcowOverviewAdvices(advices: Advice[]): void {
+    this.cowOverviewAdvicesSubject.next(advices);
+  }
   getcows(): Observable<any> {
     return this.http.get<any>(`${this.rationApiUrl}/cows`);
   }
@@ -115,18 +129,22 @@ export class CowsService {
     energyFoodValues: any
   ): Promise<MappedTotals> {
     const nutrientsEnergyFoodValues: MappedTotals = { values: [] };
-
+    
     energyFoodValues.forEach((adviceEntry: any) => {
       const adviceValue = row[`advice${adviceEntry.advice}`] || 0;
 
       if (adviceValue > 0) {
         adviceEntry.nutrientsValues.forEach((nutrient: any) => {
           let existingNutrient = nutrientsEnergyFoodValues.values.find(
-            (n) => n.field === nutrient.field
+            (n) => n.field === nutrient.field && n.feedTypeId === row.feedTypeId
           );
 
           if (!existingNutrient) {
-            existingNutrient = { field: nutrient.field, value: 0 };
+            existingNutrient = {
+              field: nutrient.field,
+              value: 0,
+              feedTypeId: row.feedTypeId,
+            };
             nutrientsEnergyFoodValues.values.push(existingNutrient);
           }
 
@@ -191,7 +209,7 @@ export class CowsService {
         totals: row.totals.map((total: NormCompare) => ({
           field: total.field || '',
           value: Number(total.value || 0),
-        }))
+        })),
       };
     });
   }

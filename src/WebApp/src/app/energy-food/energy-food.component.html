@@ -17,16 +17,12 @@
       <app-energy-feed-settings-modal class="me-2" />
       <app-energy-food-modal class="me-2" />
     </div>
-    <div class="header-controls">
-      <input type="text" class="form-control" placeholder="Zoeken..." (input)="onSearchInputChange($event)"
-        (click)="$event.stopPropagation()" />
-    </div>
   </div>
   <div class="energyFood-body" *ngIf="!isCollapsed" [@collapseAnimation]>
     <app-table [tableId]="'energy-food-table-data'" [modalId]="'remove-energy-food-type-modal'"
       [filterValue]="filterValue" [sections]="energyFoodSections" [dataSource]="dataSource"
       [footerLabelResolver]="resolveFooterLabel" [removeFeedTypeModalHeader]="removeFeedTypeModalHeader"
-      [footerCalculationResolver]="renderFooterCell.bind(this)" (cellChange)="onCellChange($event)"
+      [footerCalculationResolver]="renderFooterCell.bind(this)"
       (feedtypeDeleted)="handleFeedtypeDeleted($event)" [showPaginator]="false"></app-table>
   </div>
 </div>

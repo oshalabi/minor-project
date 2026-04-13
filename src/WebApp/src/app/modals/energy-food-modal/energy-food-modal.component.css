@@ -74,7 +74,9 @@ input[type='checkbox']:checked {
   color: rgb(0, 124, 40);
   font-weight: bold; /* Optional: make it bold for better emphasis */
 }
-
+.modal-content{
+  height:80vh;
+}
 /* Style the tabs */
 .nav-tabs .nav-link {
   color: rgb(0, 124, 40);

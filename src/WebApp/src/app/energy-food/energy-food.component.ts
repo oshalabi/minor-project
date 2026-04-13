@@ -11,12 +11,16 @@ import {
   Category,
   RemoveFeedTypeModalObject,
   EnergyFoordNutrientValue,
+  Advice,
 } from '../../types';
 import { NgClass, NgIf } from '@angular/common';
 import { EnergyFoodService } from './energy-food.service';
 import { EnergyFoodModalComponent } from '../modals/energy-food-modal/energy-food-modal.component';
 import { EnergyFeedSettingsModalComponent } from '../modals/energy-feed-settings-modal/energy-feed-settings-modal.component';
 import { NotificationService } from '../notification/notification.service';
+import { delay, filter, finalize, retryWhen, Subscription, take } from 'rxjs';
+import { CowsOverviewService } from '../cowsOverview/cowsOverview.service';
+import { RationService } from '../ration/ration.service';
 
 @Component({
   selector: 'app-energy-food',
@@ -28,7 +32,7 @@ import { NotificationService } from '../notification/notification.service';
     NgClass,
     NgIf,
     EnergyFoodModalComponent,
-    EnergyFeedSettingsModalComponent
+    EnergyFeedSettingsModalComponent,
   ],
   templateUrl: './energy-food.component.html',
   styleUrl: './energy-food.component.css',
@@ -45,7 +49,7 @@ export class EnergyFoodComponent {
       stylingClass: 'sticky-container',
       columns: [
         { field: 'feedTypeName', displayName: 'Voersoort' },
-        { field: 'kgDs', displayName: 'kg ds', editable: true },
+        { field: 'kgDs', displayName: 'kg ds', editable: false },
       ],
     },
     {
@@ -107,9 +111,14 @@ export class EnergyFoodComponent {
   toggleCollapse(): void {
     this.isCollapsed = !this.isCollapsed;
   }
+
+  private subscriptions = new Subscription();
+  cowOverviewAdvices: Advice[] = [];
   constructor(
     private energyFoodService: EnergyFoodService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cowsOverViewService: CowsOverviewService,
+    private rationService: RationService
   ) {}
   footerValues: Record<string, string | number> = {};
   private async initializeData(): Promise<void> {
@@ -132,14 +141,78 @@ export class EnergyFoodComponent {
 
   ngOnInit(): void {
     this.initializeData();
+    this.observeData();
+  }
+
+  private observeData(): void {
+    const cowOverview$ = this.cowsOverViewService.cowOverviewAdvices$;
+
+    this.subscriptions.add(
+      cowOverview$
+        .pipe(
+          retryWhen((errors) =>
+            errors.pipe(
+              delay(50), // Delay between retries
+              take(3), // Retry up to 3 times
+              finalize(() => {
+                cowOverview$.subscribe((cowOverview) => {
+                  if (!cowOverview?.length) {
+                    this.notificationService.showError(
+                      'Geen advices gevonden.'
+                    );
+                  }
+                });
+              })
+            )
+          ),
+          filter((cowOverview) => {
+            const isCowOverviewValid = cowOverview?.length > 0;
+            return isCowOverviewValid;
+          })
+        )
+        .subscribe({
+          next: async (cowOverview) => {
+            try {
+              this.cowOverviewAdvices = cowOverview;
+            } catch (err) {
+              console.error('Error in callback execution:', err);
+            }
+          },
+          error: (err) => {
+            console.error(
+              'Error during data observation or retry limit reached:',
+              err
+            );
+          },
+        })
+    );
   }
 
   async updateRationData(rationId: number): Promise<void> {
-    await this.energyFoodService.updateRationData(
-      rationId,
-      this.processEnergyFoods.bind(this)
-    );
+    if (!rationId) {
+      console.warn('Invalid ration ID provided.');
+      return Promise.reject('Invalid ration ID.');
+    }
+
+    this.rationService.getRationById(rationId, true).subscribe({
+      next: async (data: Ration) => {
+        if (!data) {
+          console.warn('No data found for the provided ration ID.');
+          return Promise.reject('No data found.');
+        }
+
+        try {
+          await this.processEnergyFoods(data);
+        } catch (error) {
+          console.error('Error processing basal rations:', error);
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching basal rations by ID:', err);
+      },
+    });
   }
+
   processEnergyFoods = async (data: Ration): Promise<boolean> => {
     if (!data) {
       console.warn('No data found in the ration data.');
@@ -150,22 +223,57 @@ export class EnergyFoodComponent {
       this.dataSource.data = [];
       this.footerValues = {};
 
-      this.notificationService.showError("krachtvoer heeft nog geen data")
+      this.notificationService.showError('krachtvoer heeft nog geen data');
       this.energyFoodService.setEnergyFoodsNutrientValues([]);
 
       return Promise.resolve(true);
     }
 
-    this.dataSource.data = data.feedTypes.map((feed) => ({
-      feedTypeId: feed.feedType.id,
-      rationId: data.id,
-      feedTypeName: feed.feedType.name,
-      kg: feed.kgAmount,
-      kgDs: feed.gAmount,
-      dsProcent: feed.feedType.dsProcent,
-      gDs: feed.feedType.dsProcent * 10,
-      ...this.energyFoodService.mapNutrientsToColumns(feed.feedType.nutrients),
-    }));
+    for (const [index, feed] of data.feedTypes.entries()) {
+      if (!feed.feedType) {
+        console.warn('No feed type found for the feed.');
+        return Promise.resolve(false);
+      } else {
+        const advices = this.cowOverviewAdvices;
+
+        const adviceIndex = index % advices.length;
+        const advice = advices[adviceIndex];
+        const adviceValue = advice?.value || 0;
+
+        const kgDs = parseFloat(
+          ((adviceValue * feed.feedType.dsProcent) / 100).toFixed(2)
+        );
+
+        if (feed.kgAmount != kgDs || feed.gAmount != kgDs) {
+          if (feed.kgAmount != kgDs || feed.gAmount != kgDs) {
+            await this.energyFoodService.updateRationRow(
+              {
+                feedTypeId: feed.feedType.id,
+                isEnergy: true,
+                feedTypeKg: kgDs,
+                feedTypeG: kgDs,
+              },
+              data.id,
+              this.processEnergyFoods.bind(this)
+            );
+          }
+        }
+      }
+    }
+    this.dataSource.data = data.feedTypes.map((feed) => {
+      return {
+        feedTypeId: feed.feedType.id,
+        rationId: data.id,
+        feedTypeName: feed.feedType.name,
+        kg: feed.kgAmount,
+        kgDs: feed.gAmount,
+        dsProcent: feed.feedType.dsProcent,
+        gDs: feed.feedType.dsProcent * 10,
+        ...this.energyFoodService.mapNutrientsToColumns(
+          feed.feedType.nutrients
+        ),
+      };
+    });
 
     for (const row of this.dataSource.data) {
       try {
@@ -186,13 +294,15 @@ export class EnergyFoodComponent {
       this.footerValues[avg.key] = avg.value;
     });
 
-    const energyFoods: EnergyFoordNutrientValue[] = data.feedTypes.map((feed, index) => ({
-      advice: index + 1,
-      nutrientsValues: feed.feedType.nutrients.map((nutrient) => ({
-        field: nutrient.code,
-        value: nutrient.value,
-      })),
-    }));
+    const energyFoods: EnergyFoordNutrientValue[] = data.feedTypes.map(
+      (feed, index) => ({
+        advice: index + 1,
+        nutrientsValues: feed.feedType.nutrients.map((nutrient) => ({
+          field: nutrient.code,
+          value: nutrient.value,
+        })),
+      })
+    );
 
     this.energyFoodService.setEnergyFoodsNutrientValues(energyFoods);
 
@@ -211,74 +321,35 @@ export class EnergyFoodComponent {
       nutrientSection.columns = mergedNutrients;
     }
 
-    this.calculateFooterTotals();
+    await this.calculateFooterTotals();
     return Promise.resolve(true);
   };
 
   recalculateRow = async (row: any, field: string): Promise<boolean> => {
-    // Clear previous error message
     if (this.genericTable) {
       this.genericTable.errorMessage = '';
     }
 
     try {
-      // Attempt recalculation
       await this.energyFoodService.recalculateRow(
         row,
         field,
         this.calculateFooterTotals.bind(this)
       );
-      return true; // Successful recalculation
+      return true;
     } catch (error: any) {
-      // Log the error
       console.error('Error recalculating row:', error);
 
-      // Set the error message based on the type of error
       if (this.genericTable) {
         this.genericTable.errorMessage = error.message;
       }
 
-      return false; // Failed recalculation
+      return false;
     }
   };
   renderFooterCell(field: string): string | number {
     return this.footerValues[field] || '0';
   }
-
-  onCellChange = async (event: {
-    row: FlattenedRationFeedType;
-    field: string;
-  }): Promise<void> => {
-    const row = event.row;
-
-    try {
-      // First, attempt to recalculate the row
-      const isValid = await this.recalculateRow(row, event.field);
-
-      // If recalculation is successful, refresh the table and update the row
-      if (isValid) {
-        await this.refreshTable();
-        await this.energyFoodService.updateRationRow(
-          row,
-          this.processEnergyFoods.bind(this)
-        );
-        this.notificationService.showSuccess(
-          'Krachtvoer succesvol bijgewerkt!'
-        );
-      } else {
-        console.warn('Recalculation failed. Skipping update.');
-      }
-    } catch (error: any) {
-      // Handle errors from recalculation
-      console.error('Error processing cell change:', error);
-      this.genericTable.errorMessage = error.message;
-    }
-  };
-
-  private refreshTable = async (): Promise<void> => {
-    this.dataSource.data = [...this.dataSource.data];
-    return Promise.resolve();
-  };
 
   private calculateFooterTotals(): void {
     const nutrientColumns = [
@@ -293,7 +364,6 @@ export class EnergyFoodComponent {
       }, 0);
     });
   }
-  // Generic function to calculate nutritional values
 
   resolveFooterLabel(field: string): string | null {
     if (field === 'feedTypeName') {

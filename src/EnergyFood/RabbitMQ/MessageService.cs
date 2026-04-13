@@ -87,6 +87,10 @@ public Task HandleMessageAsync()
 
         foreach (var nutrient in feedType.Nutrients)
         {
+            if (nutrient.NutrientType.Code.Length > 20)
+            {
+                Console.WriteLine($"Code too long: {nutrient.NutrientType.Code}");
+            }
             var existingNutrientType = await dbContext.NutrientTypes
                 .AsTracking()
                 .FirstOrDefaultAsync(nt => nt.Value == nutrient.NutrientType.Value);

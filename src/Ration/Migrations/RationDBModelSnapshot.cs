@@ -25,10 +25,7 @@ namespace Ration.Migrations
             modelBuilder.Entity("Domain.Entities.Advice", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CowId")
                         .HasColumnType("integer");
@@ -36,7 +33,7 @@ namespace Ration.Migrations
                     b.Property<decimal>("Value")
                         .HasColumnType("numeric");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id", "CowId");
 
                     b.HasIndex("CowId");
 
@@ -767,8 +764,8 @@ namespace Ration.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int>("Value")
                         .HasColumnType("integer");

@@ -12,7 +12,7 @@ public class EnergyFoodDB : DbContext
     {
     }
 
-    public DbSet<Domain.Entities.LivestockProperties> LivestockProperties { get; set; }
+    public DbSet<LivestockProperties> LivestockProperties { get; set; }
     public DbSet<FeedType> FeedTypes { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Nutrient> Nutrients { get; set; }

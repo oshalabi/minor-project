@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Entities;
+using Domain.EntityTypeConfiguration;
 using Ration.Commands;
 using Ration.Model;
 

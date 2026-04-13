@@ -60,6 +60,8 @@ export class GenericTable implements OnInit, AfterViewInit {
   get filterValue(): string {
     return this._filterValue;
   }
+  @Input() pageSizeOptions = [5, 10, 15];
+
   @Input() dataSource: MatTableDataSource<any> = new MatTableDataSource();
   @Input() sections: Array<TableSections> = [];
   @Input() pageSize = 5;
@@ -114,7 +116,7 @@ export class GenericTable implements OnInit, AfterViewInit {
     if (row.totals) {
       const total = row.totals.find((total: any) => total.field === field);
       if (total) {
-        return total.value; 
+        return total.value;
       }
     }
 
@@ -139,6 +141,9 @@ export class GenericTable implements OnInit, AfterViewInit {
   validateAndSetDefault(row: any, field: string): void {
     const value = row[field];
 
+    if (isNaN(value) || value > 100 || row[field] === undefined) {
+      row[field] = 0;
+    }
     if (isNaN(value) || value < 0 || row[field] === undefined) {
       row[field] = 0;
     }
@@ -163,8 +168,8 @@ getCellStyle(row: any, field: string): { [key: string]: string } | null {
       switch (cellWarning) {
         case 1:
           return { 'background-color': '#F4B183', color: 'black' };
-        case 2:          
-          return { 'background-color': '#ED7D7D', color: 'black' };
+        case 2:
+          return { 'background-color': '#ED7D7D ', color: 'black' };
         default:
           return null; // No style
       }

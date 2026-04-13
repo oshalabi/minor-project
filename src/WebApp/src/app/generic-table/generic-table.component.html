@@ -40,6 +40,7 @@
             type="number"
             [(ngModel)]="row[column.field]"
             min="0"
+            max="100"
             (keydown.enter)="onCellChange(row, column.field)"
             (focus)="clearDefaultValue(row, column.field)"
             (blur)="validateAndSetDefault(row, column.field)"
@@ -93,6 +94,6 @@
   </table>
 </div>
 </div>
-<mat-paginator *ngIf="showPaginator" [pageSize]="pageSize" [showFirstLastButtons]="true"></mat-paginator>
+<mat-paginator *ngIf="showPaginator" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true"></mat-paginator>
 <remove-feedtype-modal [header]="removeFeedTypeModalHeader" [modalObject]="selectedRow"
   (onFeedtypeDeleted)="handleFeedtypeDeleted($event)" [modalId]="modalId"></remove-feedtype-modal>

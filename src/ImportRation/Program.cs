@@ -1,5 +1,4 @@
 using DotNetEnv;
-using ImportRation;
 using ImportRation.Data;
 using ImportRation.RabbitMQ;
 using Microsoft.EntityFrameworkCore;
@@ -73,8 +72,8 @@ builder.Services.Configure<ImportRationMessageBroker>(options =>
 });
 
 // Register RabbitMQ services
-builder.Services.AddScoped<IRabbitMQPublisher, MessageService>();
-builder.Services.AddSingleton<MessageService>();
+// builder.Services.AddScoped<IRabbitMQPublisher, IMessageService>();
+builder.Services.AddSingleton<IMessageService, MessageService>();
 
 // Add Controllers and Swagger
 builder.Services.AddControllers();

@@ -27,7 +27,7 @@ public class RationDB : DbContext
     public DbSet<LactationPeriod> LactationPeriods { get; set; }
 
     public DbSet<Advice> Advices { get; set; }
-    
+
     public DbSet<EnergyFeedSettings> EnergyFeedSettings { get; set; }
 
 
@@ -38,7 +38,7 @@ public class RationDB : DbContext
 
         // Use PostgreSQL-specific naming conventions
         modelBuilder.HasDefaultSchema("public");
-        
+
         modelBuilder.Entity<LivestockProperties>()
             .HasOne(lp => lp.Ration)
             .WithOne(r => r.LivestockProperties)
@@ -60,15 +60,18 @@ public class RationDB : DbContext
             .Navigation(rft => rft.Ration)
             .IsRequired(false); // Optional if needed to suppress ambiguity
         
+        modelBuilder.Entity<Cow>().HasKey(c => c.Id);
+        modelBuilder.Entity<Advice>().HasKey(advice => new { advice.Id, advice.CowId });
+
         modelBuilder.Entity<LivestockProperties>().HasData(
             new LivestockProperties()
             {
-                Id = 1, 
+                Id = 1,
                 MilkFat = 4, MilkProtein = 3, AvgWeightCow = 650,
             },
             new LivestockProperties()
             {
-                Id = 2, 
+                Id = 2,
                 MilkFat = 4, MilkProtein = 3, AvgWeightCow = 650,
             },
             new LivestockProperties()
@@ -78,8 +81,8 @@ public class RationDB : DbContext
             });
 
         modelBuilder.Entity<Domain.Entities.Ration>().HasData(
-            new Domain.Entities.Ration { Id = 1, Name = "Ration A", LivestockPropertyId = 1},
-            new Domain.Entities.Ration { Id = 2, Name = "Ration B", LivestockPropertyId = 2}
+            new Domain.Entities.Ration { Id = 1, Name = "Ration A", LivestockPropertyId = 1 },
+            new Domain.Entities.Ration { Id = 2, Name = "Ration B", LivestockPropertyId = 2 }
         );
         modelBuilder
             .Entity<LactationPeriod>()

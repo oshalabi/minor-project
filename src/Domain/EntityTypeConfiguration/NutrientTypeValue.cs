@@ -1,4 +1,6 @@
-﻿public enum NutrientTypeValue
+﻿namespace Domain.EntityTypeConfiguration;
+
+public enum NutrientTypeValue
 {
     None,
     Vem,

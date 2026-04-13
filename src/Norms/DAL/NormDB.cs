@@ -1,8 +1,8 @@
-﻿using Domain.EntityTypeConfiguration;
-using Domain.Entities;
+﻿using Domain.Entities;
+using Domain.EntityTypeConfiguration;
 using Microsoft.EntityFrameworkCore;
 
-namespace BasalRation.DAL;
+namespace Norms.DAL;
 
 public class NormDB : DbContext
 {

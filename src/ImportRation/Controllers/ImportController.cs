@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.EntityTypeConfiguration;
 using ImportRation.Data;
 using ImportRation.Exceptions;
 using ImportRation.RabbitMQ;
@@ -14,9 +15,9 @@ namespace ImportRation.controllers;
 public class ImportController : ControllerBase
 {
     private readonly BasalRationDBContext _context;
-    private readonly MessageService _messageService;
+    private readonly IMessageService _messageService;
 
-    public ImportController(BasalRationDBContext context, MessageService messageService)
+    public ImportController(BasalRationDBContext context, IMessageService messageService)
     {
         _context = context;
         _messageService = messageService;

@@ -574,7 +574,7 @@ public class RationService
 
             var calculated = command.FeedTypeKg * ((decimal)dsProcent / 100);
 
-            const decimal tolerance = 0.5m;
+            const decimal tolerance = 1m;
 
             if (Math.Abs(command.FeedTypeG - calculated) > tolerance)
             {
@@ -594,7 +594,6 @@ public class RationService
             throw;
         }
     }
-
 
     public async Task<List<CowGroupingDTO>> GetCowsGroupedAsync(int id)
     {
@@ -698,12 +697,12 @@ public class RationService
             RV = cows.Select(x => x.RV).Average(),
             Total = cows.Select(x => x.Total).Average(),
             Advices = cows
-                .SelectMany(x => x.Advices) // Flatten the list of advices from all cows
-                .GroupBy(advice => advice.CowId) // Group by advice Id
+                .SelectMany(x => x.Advices)
+                .GroupBy(advice => advice.Id)
                 .Select(group => new AdviceDTO
                 {
-                    Id = group.Key, // The Id of the advice
-                    Value = group.Average(advice => advice.Value) // The average value for this Id
+                    Id = group.Key,
+                    Value = Math.Round(group.Average(advice => advice.Value), 2)
                 })
                 .ToList(),
             Group = group
@@ -711,7 +710,7 @@ public class RationService
 
         return Task.FromResult(mappedCows);
     }
-    
+
     public async Task<bool> GetCowsInfoAsync(IFormFile file, int rationId)
     {
         var lactationPeriods = await _dbContext.LactationPeriods.ToListAsync();
@@ -782,14 +781,11 @@ public class RationService
             throw new Exception($"No lactation period found for Days = {days}.");
         }
 
-        int parityId = GetParityId(days, parities);
+        var parityId = GetParityId(days, parities);
 
-        var cowName = worksheet.Cells[row, 3].Text.Trim();
+        var cowName = $"***** {row}";
+        var cowNumber = Convert.ToInt32(worksheet.Cells[row, 2].Text);
 
-        if (string.IsNullOrEmpty(cowName))
-        {
-            cowName = $"Onbekende-{row}";
-        }
 
         var milk = Convert.ToDecimal(worksheet.Cells[row, 5].Text);
         var fat = Convert.ToDecimal(worksheet.Cells[row, 6].Text);
@@ -798,6 +794,7 @@ public class RationService
         var rv = Convert.ToDecimal(worksheet.Cells[row, 19].Text);
         var cow = new Cow
         {
+            Id = cowNumber,
             Name = cowName,
             Days = days,
             Milk = milk,
@@ -846,10 +843,10 @@ public class RationService
         {
             var advice = new Advice
             {
+                Id = i,
                 Value = Convert.ToDecimal(worksheet.Cells[row, columnIndexes[i]].Text),
                 CowId = cowId
             };
-
             advices.Add(advice);
         }
 
@@ -912,11 +909,11 @@ public class RationService
         UpdateLivestockProperties command)
     {
         var livestockProperties = await GetLivestockPropertiesAsync(rationId);
-        
+
         var updatedLivestockProperties = _mapper.Map<LivestockProperties>(command);
 
         await _dbContext.SaveChangesAsync();
-        
+
         return Results.Ok("Livestock properties updated.");
     }
 
@@ -929,9 +926,9 @@ public class RationService
 
             if (livestockProperties == null)
                 throw new Exception("No livestock properties were found for this ration.");
-            
+
             var mappedLivestockProperties = _mapper.Map<LivestockPropertiesDTO>(livestockProperties);
-            
+
             return mappedLivestockProperties;
         }
         catch (Exception e)
@@ -940,7 +937,7 @@ public class RationService
             throw;
         }
     }
-    
+
     public async Task<List<EnergyFeedSettingsDto>> GetEnergyFeedSettingsForRationAsync(int rationId)
     {
         var associatedEnergyFeedTypes = await _dbContext.RationFeedTypes
@@ -976,8 +973,9 @@ public class RationService
     public async Task<bool> UpdateEnergyFeedSettingsAsync(EnergyFeedSettingsDto dto)
     {
         var existingSettings = await _dbContext.EnergyFeedSettings
-            .FirstOrDefaultAsync(e => e.RationId == dto.RationId && e.FeedTypeId == dto.FeedTypeId && e.ParityId == dto.ParityId);
-    
+            .FirstOrDefaultAsync(e =>
+                e.RationId == dto.RationId && e.FeedTypeId == dto.FeedTypeId && e.ParityId == dto.ParityId);
+
         if (existingSettings != null)
         {
             existingSettings.MinEnergyFeed = dto.MinEnergyFeed;
@@ -986,7 +984,7 @@ public class RationService
             await _dbContext.SaveChangesAsync();
             return true;
         }
-    
+
         return false;
     }
 }

@@ -9,6 +9,8 @@ import {
   NutrientTypeValueEnums,
   FlattenedRationFeedType,
   EnergyFoordNutrientValue,
+  FeedType,
+  RationFeedType,
 } from '../../types';
 import { RationService } from '../ration/ration.service';
 
@@ -144,26 +146,19 @@ export class EnergyFoodService {
   }
 
   updateRationRow = async (
-    row: FlattenedRationFeedType,
+    command: UpdateRationCommand,
+    rationId: number,
     callback: (data: Ration) => Promise<boolean>
   ): Promise<void> => {
-    if (!row || !row.feedTypeId || !row.rationId) {
+    if (!command || !command.feedTypeId ) {
       // Handle invalid row data
-      console.error('Invalid row data:', row);
+      console.error('Invalid row data:', command);
       return Promise.reject('Invalid row data.');
     }
-
-    const command: UpdateRationCommand = {
-      feedTypeId: row.feedTypeId,
-      isEnergy: true,
-      feedTypeKg: row.kg,
-      feedTypeG: row.kgDs,
-    };
-
     // Call the service to update the ration
-    this.rationService.updateRationFeedType(row.rationId, command).subscribe({
+    this.rationService.updateRationFeedType(rationId, command).subscribe({
       next: () => {
-        this.updateRationData(row.rationId, callback);
+        this.updateRationData(rationId, callback);
         return Promise.resolve();
       },
       error: (err) => {
@@ -222,15 +217,13 @@ export class EnergyFoodService {
         console.warn(`Value for column ${column} not found in row`, row);
       }
     });
-
     callback();
   }
 
   async recalculateRow(
     row: any,
     field: string,
-    callback: () => void
-  ): Promise<boolean> {
+    callback: () => void  ): Promise<boolean> {
     try {
       const dsProcent = row.dsProcent || 0;
 

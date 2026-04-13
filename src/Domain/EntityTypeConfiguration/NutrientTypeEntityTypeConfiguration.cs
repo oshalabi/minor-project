@@ -8,6 +8,6 @@ public class NutrientTypeEntityTypeConfiguration : IEntityTypeConfiguration<Nutr
 {
     public void Configure(EntityTypeBuilder<NutrientType> builder)
     {
-        builder.Property(x => x.Code).HasMaxLength(20);
+        builder.Property(x => x.Code).HasMaxLength(50);
     }
 }

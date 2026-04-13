@@ -71,7 +71,6 @@ graph TD
         BasalRationAPI -- "Publishes/Consumes messages" --> RabbitMQ
         EnergyFoodAPI -- "Publishes/Consumes messages" --> RabbitMQ
         ImportRationAPI -- "Publishes/Consumes messages" --> RabbitMQ
-        NormAPI -- "Publishes/Consumes messages" --> RabbitMQ
     end
 
     style Rantsoenwijzer fill:#fff,stroke:#333,stroke-width:2px,color:#000000
@@ -88,8 +87,6 @@ graph TD
 ## Component Diagram
 
 In dit hoofdstuk zal ik het componentdiagram presenteren voor de microservices. Deze diagrammen tonen de belangrijkste onderdelen van de microservices, zoals de **controller**, **service**, **database** en andere componenten zoals **commando's**, **DTO's** en **mappers**. Elk van deze componenten heeft een specifieke rol in de werking van de microservices. Het diagram biedt een visuele representatie van de onderlinge afhankelijkheden en communicatie tussen deze componenten.
-
-### Ration
 
 ### Ration
 
@@ -195,10 +192,6 @@ graph TD
 
 ### BasalRation
 
-### BasalRation
-
-### BasalFeed
-
 1. **BasalFeedController**  
    - **Doel**: Exposeert de API-endpoints voor het beheren van basale feedgegevens.
    - **Verantwoordelijkheden**:
@@ -296,10 +289,6 @@ graph TD
     style BasalRationMessageBroker fill:#bbf,stroke:#333,stroke-width:1px,color:#000000
     style IRabbitMQConsumer fill:#bbf,stroke:#333,stroke-width:1px,color:#000000
 ```
-
-### EnergyFood
-
-### EnergyFood
 
 ### EnergyFood
 
@@ -401,8 +390,6 @@ graph TD
     style BasalRationMessageBroker fill:#bbf,stroke:#333,stroke-width:1px,color:#000000
     style IRabbitMQConsumer fill:#bbf,stroke:#333,stroke-width:1px,color:#000000
 ```
-
-### Normen
 
 ### Norms
 

@@ -84,13 +84,14 @@ public class MessageService : IDisposable, IRabbitMQConsumer
 
             var feedType = JsonConvert.DeserializeObject<FeedType>(message);
 
+            // Load all existing NutrientTypes into a dictionary
+            var existingNutrientTypes = await dbContext.NutrientTypes
+                .AsTracking()
+                .ToDictionaryAsync(nt => nt.Value, nt => nt);
+
             foreach (var nutrient in feedType.Nutrients)
             {
-                var existingNutrientType = await dbContext.NutrientTypes
-                    .AsTracking()
-                    .FirstOrDefaultAsync(nt => nt.Value == nutrient.NutrientType.Value);
-
-                if (existingNutrientType == null)
+                if (!existingNutrientTypes.TryGetValue(nutrient.NutrientType.Value, out var existingNutrientType))
                 {
                     var newNutrientType = new NutrientType
                     {
@@ -100,6 +101,9 @@ public class MessageService : IDisposable, IRabbitMQConsumer
 
                     await dbContext.NutrientTypes.AddAsync(newNutrientType);
                     await dbContext.SaveChangesAsync();
+
+                    // Add the newly created NutrientType to the dictionary
+                    existingNutrientTypes[nutrient.NutrientType.Value] = newNutrientType;
 
                     nutrient.NutrientTypeId = newNutrientType.Id;
                     nutrient.NutrientType = newNutrientType;
@@ -122,4 +126,5 @@ public class MessageService : IDisposable, IRabbitMQConsumer
 
         return Task.CompletedTask;
     }
+
 }

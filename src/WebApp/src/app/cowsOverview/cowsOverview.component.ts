@@ -1,11 +1,11 @@
 import { ChangeDetectorRef, Component, Input, ViewChild } from '@angular/core';
 import { GenericTable } from '../generic-table/generic-table.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ComparedTotalRow, Cow, TableSections } from '../../types';
+import { Advice, ComparedTotalRow, Cow, TableSections } from '../../types';
 import { MatTableDataSource } from '@angular/material/table';
 import { MappedTotals } from '../../types';
 import { NgClass, NgIf } from '@angular/common';
-import { CowsService } from './cowsOverview.service';
+import { CowsOverviewService } from './cowsOverview.service';
 import { BasalRationService } from '../basalration/basalration.service';
 import { EnergyFoodService } from '../energy-food/energy-food.service';
 import {
@@ -53,7 +53,7 @@ export class CowsOverviewComponent {
 
   private subscriptions = new Subscription();
   constructor(
-    private cowsService: CowsService,
+    private cowsService: CowsOverviewService,
     private changeDetector: ChangeDetectorRef,
     private basalRationService: BasalRationService,
     private energyFoodService: EnergyFoodService,
@@ -72,10 +72,8 @@ export class CowsOverviewComponent {
 
   async onShowAttentionsChange(event: Event): Promise<void> {
     if (this.showAttentions) {
-      // Checkbox is checked
       await this.filterForAttentions();
     } else {
-      // Checkbox is unchecked
       this.clearAttentionFilter();
     }
   }
@@ -130,7 +128,7 @@ export class CowsOverviewComponent {
   ): void {
     const basalRation$ = this.basalRationService.basalRationsTotal$;
     const energyFood$ = this.energyFoodService.energyFoodsValues$;
-  
+
     this.subscriptions.add(
       combineLatest([basalRation$, energyFood$])
         .pipe(
@@ -146,7 +144,7 @@ export class CowsOverviewComponent {
                     );
                   }
                 });
-  
+
                 energyFood$.pipe(take(3)).subscribe((energyFood) => {
                   if (!energyFood?.length) {
                     this.notificationService.showError(
@@ -160,7 +158,7 @@ export class CowsOverviewComponent {
           filter(([basalRation, energyFood]) => {
             const isBasalValid = basalRation?.values?.length > 0;
             const isEnergyValid = energyFood?.length > 0;
-  
+
             return isBasalValid && isEnergyValid;
           })
         )
@@ -168,7 +166,7 @@ export class CowsOverviewComponent {
           next: async ([basalRation, energyFood]) => {
             this.isBasalRationsSubscribed = true;
             this.isEnergyFoodsSubscribed = true;
-  
+
             // Pass the valid data to the callback
             await callback(basalRation, energyFood);
           },
@@ -181,7 +179,7 @@ export class CowsOverviewComponent {
         })
     );
   }
-  
+
 
   private async updateRows(basalRation: any, energyFood: any): Promise<void> {
     if (!this.isBasalRationsSubscribed || !this.isEnergyFoodsSubscribed) return;
@@ -198,12 +196,16 @@ export class CowsOverviewComponent {
       await this.recalculateRow(row, basalRation, energyFood);
     }
 
+    if(this.showAttentions) {
+      await this.compareNorms(data);
+    }
     this.resetFlags();
   }
 
   private resetFlags(): void {
     this.isRecalculated = false;
     this.isCowGroupingComparisonDone = false;
+    this.isCowsComparisonDone = false;
   }
 
   private async initializeData(): Promise<void> {
@@ -222,24 +224,24 @@ export class CowsOverviewComponent {
     this.cowsOverviewSections = [
       !this.isAllCows
         ? {
-            header: '',
-            stylingClass: 'sticky-container',
-            columns: [
-              { field: 'totalCows', displayName: 'Aantal' },
-              { field: 'name', displayName: 'Naam' },
-              { field: 'days', displayName: 'Dgn' },
-            ],
-          }
+          header: '',
+          stylingClass: 'sticky-container',
+          columns: [
+            { field: 'totalCows', displayName: 'Aantal' },
+            { field: 'name', displayName: 'Naam' },
+            { field: 'days', displayName: 'Dgn' },
+          ],
+        }
         : {
-            header: '',
-            stylingClass: 'sticky-container',
-            columns: [
-              { field: 'lactationId', displayName: 'Lac…' },
-              { field: 'id', displayName: 'Nr.' },
-              { field: 'name', displayName: 'Naam' },
-              { field: 'days', displayName: 'Dgn' },
-            ],
-          },
+          header: '',
+          stylingClass: 'sticky-container',
+          columns: [
+            { field: 'lactationId', displayName: 'Lac…' },
+            { field: 'id', displayName: 'Nr.' },
+            { field: 'name', displayName: 'Naam' },
+            { field: 'days', displayName: 'Dgn' },
+          ],
+        },
       {
         header: 'Advies',
         stylingClass: 'sticky-container',
@@ -282,6 +284,7 @@ export class CowsOverviewComponent {
         await this.cowsService.getCowsData((data) => {
           this.processCowsData(data);
           this.changeDetector.detectChanges();
+          this.updatecowOverviewAdvices(data);
           return Promise.resolve(true);
         });
       } else {
@@ -352,9 +355,42 @@ export class CowsOverviewComponent {
       advice3: cow.advices?.[2]?.value ?? 0,
       advice4: cow.advices?.[3]?.value ?? 0,
       ruwv: ((cow.total * cow.rv) / 100).toFixed(2),
-      totals: [], 
+      totals: [],
     }));
   };
+
+  updatecowOverviewAdvices(data: Cow[]): void {
+    if (!data) {
+      this.notificationService.showError(
+        'Koeien hebben nog geen advices.'
+      );
+      return;
+    }
+
+    const adviceSums = [0, 0, 0, 0];
+    const adviceCounts = [0, 0, 0, 0];
+
+    data.forEach((cow) => {
+      cow.advices?.forEach((advice, index) => {
+        if (index < 4) {
+          adviceSums[index] += advice.value;
+          adviceCounts[index]++;
+        }
+      });
+    });
+
+    // Calculate the averages for each advice
+    const averages = adviceSums.map((sum, index) =>
+      adviceCounts[index] > 0 ? sum / adviceCounts[index] : 0
+    );
+
+    // Map the averages to advice fields
+    const advices: Advice[] = averages.map((average, index) => ({
+      field: `advice${index + 1}`,
+      value: average,
+    }));
+    this.cowsService.setcowOverviewAdvices(advices);
+  }
 
   private async processData<T>(
     data: T[],
@@ -446,6 +482,7 @@ export class CowsOverviewComponent {
   ): Promise<boolean> {
     try {
       await this.calculateNutrientsValues(row, basalRation, energyFood);
+      this.isRecalculated = true;
       return true;
     } catch (error: any) {
       console.error('Error recalculating row:', error);

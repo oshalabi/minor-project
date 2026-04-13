@@ -62,22 +62,21 @@
 }
 
 .cows-overview-body {
-  overflow: hidden; 
-  transition: height 0.3s ease; 
+  overflow: hidden;
+  transition: height 0.3s ease;
 }
 
 .cows-overview-body[hidden] {
-  display: none; 
+  display: none;
 }
 .cows-overview-header {
-  transition: border-radius 0.01s ease; 
+  transition: border-radius 0.01s ease;
 }
 
 .expanded-header {
-  border-radius: 15px 15px 0 0; 
+  border-radius: 15px 15px 0 0;
 }
 
 .collapsed-header {
-  border-radius: 15px; 
+  border-radius: 15px;
 }
-
